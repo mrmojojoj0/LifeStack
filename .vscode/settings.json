@@ -1,0 +1,13 @@
+{
+    "java.project.sourcePaths": [
+        "src"
+    ],
+    "java.project.outputPath": "build",
+    "java.format.settings.url": ".vscode/java-formatter.xml",
+    "java.project.referencedLibraries": [
+        "c:\\Users\\sakin\\Downloads\\Compressed\\jcalendar-1.4\\lib\\jcalendar-1.4.jar",
+        "c:\\Users\\sakin\\Downloads\\Compressed\\jcalendar-1.4\\lib\\jgoodies-common-1.2.0.jar",
+        "c:\\Users\\sakin\\Downloads\\Compressed\\jcalendar-1.4\\lib\\jgoodies-looks-2.4.1.jar",
+        "c:\\Users\\sakin\\Downloads\\Compressed\\jcalendar-1.4\\lib\\junit-4.6.jar"
+    ],
+}
