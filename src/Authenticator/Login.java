@@ -1,16 +1,18 @@
 
-package components;
+package Authenticator;
 
 import java.io.IOException;
 import java.nio.file.Files;
 
 import javax.swing.*;
+
 import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import MyApp.App;
+import components.MyButton;
 
 public class Login extends AuthFrame {
     public Login() {

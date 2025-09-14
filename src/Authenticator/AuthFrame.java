@@ -1,4 +1,7 @@
-package components;
+package Authenticator;
+import components.MyButton;
+import components.MyFonts;
+
 
 import javax.swing.*;
 

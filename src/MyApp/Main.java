@@ -1,9 +1,11 @@
 package MyApp;
 import javax.swing.*;
+
+import Authenticator.Login;
+import Authenticator.SignUp;
+
 import java.io.*;
 import java.nio.file.*;
-import components.Login;
-import components.SignUp;
 
 
 

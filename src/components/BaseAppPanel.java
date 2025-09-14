@@ -30,6 +30,7 @@ public abstract class BaseAppPanel extends JPanel {
         this.add(mainBody, BorderLayout.CENTER);
     }
 
+
     /**
      * Child classes must implement this to set up their UI
      */
