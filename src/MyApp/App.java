@@ -20,7 +20,7 @@ public class App {
         Object[][] tabs = { { "\ue70b", MyColors.notepadInactive, new NotepadPanel(mainFrame) },
                 { "\ueb1d", MyColors.toDoInactive, new TodoPanel(mainFrame) },
                 { "\uee7e", MyColors.passwordInactive, new PasswordPanel(mainFrame) },
-                { "\ue8c7", MyColors.financeInactive, new FinancePanel() } };
+                { "\ue8c7", MyColors.financeInactive, new FinancePanel(mainFrame) } };
 
         // JPanel titleBar = new JPanel();
         // JLabel title = new JLabel("");

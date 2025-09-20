@@ -1,9 +1,11 @@
 {
-  "java.project.sourcePaths": ["src"],
+  "java.project.sourcePaths": [
+    "src"
+  ],
   "java.project.outputPath": "build",
   "java.format.settings.url": ".vscode/java-formatter.xml",
   "java.project.referencedLibraries": [
-    "c:\\Users\\sakin\\Downloads\\Compressed\\pdfbox-app-3.0.5.jar",
+    "lib\\jfreechart-1.5.4.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\io-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\font-asian-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\styled-xml-parser-9.3.0.jar",
@@ -19,6 +21,7 @@
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\sign-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\jcalendar-1.4\\lib\\jcalendar-1.4.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\pdfa-9.3.0.jar",
+    "c:\\Users\\sakin\\Downloads\\Compressed\\pdfbox-app-3.0.5.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\kernel-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\bouncy-castle-fips-adapter-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\hyph-9.3.0.jar",

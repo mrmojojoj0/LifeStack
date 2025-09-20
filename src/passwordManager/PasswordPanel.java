@@ -11,12 +11,13 @@ import components.BaseAppPanel;
 import components.MyButton;
 import components.MyColors;
 import components.MyFonts;
+import java.awt.datatransfer.*;
 
 class PMButton extends MyButton {
     PMButton(String text) {
         super(text);
-        this.setBackground(new Color(0x4f8fdf));
-        this.hoverBg = MyColors.toDoActive;
+        this.setBackground(MyColors.passwordActive);
+        this.hoverBg = new Color(0x4682b4);
     }
 }
 
@@ -47,12 +48,14 @@ public class PasswordPanel extends BaseAppPanel {
         PMButton filterBtn = new PMButton("Filter");
         PMButton clearFilterBtn = new PMButton("Clear Filter");
         PMButton showHideBtn = new PMButton("Show");
+        PMButton copyButton = new PMButton("Copy");
 
         addAddAction(addBtn);
         addDeleteAction(deleteBtn);
         addSaveAction(saveBtn);
         addFilterAction(filterBtn);
         addShowHideAction(showHideBtn);
+        addCopyAction(copyButton);
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonsPanel.setOpaque(false);
@@ -62,8 +65,9 @@ public class PasswordPanel extends BaseAppPanel {
         buttonsPanel.add(filterBtn);
         buttonsPanel.add(clearFilterBtn);
         buttonsPanel.add(showHideBtn);
+        buttonsPanel.add(copyButton);
 
-        clearFilterBtn.addActionListener(e -> {
+        clearFilterBtn.addActionListener(_ -> {
             sorter.setRowFilter(null);
             logLabel.setText("Showing all passwords");
         });
@@ -117,7 +121,7 @@ public class PasswordPanel extends BaseAppPanel {
 
     // === Actions ===
     private void addAddAction(PMButton addBtn) {
-        addBtn.addActionListener(e -> {
+        addBtn.addActionListener(_ -> {
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -126,9 +130,12 @@ public class PasswordPanel extends BaseAppPanel {
             JTextField passField = new JTextField(20);
             JLabel strengthLabel = new JLabel("Strength: ");
 
-            panel.add(new JLabel("Website:")); panel.add(siteField);
-            panel.add(new JLabel("Username:")); panel.add(userField);
-            panel.add(new JLabel("Password:")); panel.add(passField);
+            panel.add(new JLabel("Website:"));
+            panel.add(siteField);
+            panel.add(new JLabel("Username:"));
+            panel.add(userField);
+            panel.add(new JLabel("Password:"));
+            panel.add(passField);
             panel.add(strengthLabel);
 
             // Update strength while typing
@@ -137,27 +144,38 @@ public class PasswordPanel extends BaseAppPanel {
                     String password = passField.getText();
                     String strength = getPasswordStrength(password);
                     strengthLabel.setText("Strength: " + strength);
-                    if ("Weak".equals(strength)) strengthLabel.setForeground(Color.RED);
-                    else if ("Medium".equals(strength)) strengthLabel.setForeground(Color.ORANGE);
-                    else strengthLabel.setForeground(Color.GREEN.darker());
+                    if ("Weak".equals(strength))
+                        strengthLabel.setForeground(Color.RED);
+                    else if ("Medium".equals(strength))
+                        strengthLabel.setForeground(Color.ORANGE);
+                    else
+                        strengthLabel.setForeground(Color.GREEN.darker());
                 }
-                @Override public void insertUpdate(DocumentEvent e) { update(); }
-                @Override public void removeUpdate(DocumentEvent e) { update(); }
-                @Override public void changedUpdate(DocumentEvent e) { update(); }
+
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    update();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    update();
+                }
             });
 
-            int result = JOptionPane.showConfirmDialog(parentFrame, panel, "Add Password",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            int result = JOptionPane.showConfirmDialog(parentFrame, panel, "Add Password", JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE);
 
             if (result == JOptionPane.OK_OPTION) {
                 if (!siteField.getText().trim().isEmpty()) {
                     String password = passField.getText().trim();
-                    model.addRow(new Object[]{
-                            siteField.getText().trim(),
-                            userField.getText().trim(),
-                            password,
-                            getPasswordStrength(password)
-                    });
+                    model.addRow(new Object[] { siteField.getText().trim(), userField.getText().trim(), password,
+                            getPasswordStrength(password) });
                     logLabel.setText("Password added for " + siteField.getText().trim());
                 } else {
                     logLabel.setText("Website is required!");
@@ -167,7 +185,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addDeleteAction(PMButton deleteBtn) {
-        deleteBtn.addActionListener(e -> {
+        deleteBtn.addActionListener(_ -> {
             int[] selectedRows = table.getSelectedRows();
             if (selectedRows.length == 0) {
                 logLabel.setText("No entry selected!");
@@ -182,7 +200,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addSaveAction(PMButton saveBtn) {
-        saveBtn.addActionListener(e -> savePasswords());
+        saveBtn.addActionListener(_ -> savePasswords());
     }
 
     private void savePasswords() {
@@ -198,13 +216,13 @@ public class PasswordPanel extends BaseAppPanel {
             logLabel.setText("Passwords saved");
         } catch (Exception ex) {
             logLabel.setText("Error saving passwords!");
-            JOptionPane.showMessageDialog(parentFrame, "Error saving passwords!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(parentFrame, "Error saving passwords!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void loadPasswords() {
-        if (!currentFile.exists()) return;
+        if (!currentFile.exists())
+            return;
         model.setRowCount(0);
         try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
             String line;
@@ -220,7 +238,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addFilterAction(PMButton filterBtn) {
-        filterBtn.addActionListener(e -> {
+        filterBtn.addActionListener(_ -> {
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -228,13 +246,16 @@ public class PasswordPanel extends BaseAppPanel {
             JTextField siteField = new JTextField(20);
             JTextField userField = new JTextField(20);
 
-            panel.add(new JLabel("Website:")); panel.add(siteField);
-            panel.add(new JLabel("Username:")); panel.add(userField);
+            panel.add(new JLabel("Website:"));
+            panel.add(siteField);
+            panel.add(new JLabel("Username:"));
+            panel.add(userField);
 
             int result = JOptionPane.showConfirmDialog(parentFrame, panel, "Filter Passwords",
                     JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            if (result != JOptionPane.OK_OPTION) return;
+            if (result != JOptionPane.OK_OPTION)
+                return;
 
             List<RowFilter<Object, Object>> filters = new ArrayList<>();
             if (!siteField.getText().trim().isEmpty())
@@ -248,13 +269,12 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addShowHideAction(PMButton showHideBtn) {
-        showHideBtn.addActionListener(e -> {
+        showHideBtn.addActionListener(_ -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow == -1) {
                 logLabel.setText("Select a row to show/hide password");
                 return;
             }
-            int modelRow = table.convertRowIndexToModel(selectedRow);
             TableColumn passwordColumn = table.getColumnModel().getColumn(2);
 
             if (passwordsVisible) {
@@ -263,9 +283,8 @@ public class PasswordPanel extends BaseAppPanel {
             } else {
                 passwordColumn.setCellRenderer(new DefaultTableCellRenderer() {
                     @Override
-                    public Component getTableCellRendererComponent(JTable table, Object value,
-                                                                   boolean isSelected, boolean hasFocus,
-                                                                   int row, int column) {
+                    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                            boolean hasFocus, int row, int column) {
                         if (row == selectedRow) {
                             setText(value.toString());
                         } else {
@@ -283,18 +302,54 @@ public class PasswordPanel extends BaseAppPanel {
         });
     }
 
+    private void addCopyAction(PMButton cButton) {
+        cButton.addActionListener(_ -> {
+            int row = table.getSelectedRow();
+            int col = table.getSelectedColumn();
+
+            if (row != -1 && col != -1) {
+                // Get the actual value from the table cell
+                Object cellValue = table.getValueAt(row, col);
+
+                if (cellValue != null) {
+                    String text = cellValue.toString();
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clipboard.setContents(new StringSelection(text), null);
+
+                    if (col != 2) {
+                        logLabel.setText("Copied to clipboard: " + text);
+                    } else {
+                        logLabel.setText("Copied password to clipboard.");
+                    }
+                } else {
+                    logLabel.setText("Cell is empty!");
+                }
+            } else {
+                logLabel.setText("No cell selected!");
+            }
+        });
+    }
+
     // === Password strength calculation ===
     private String getPasswordStrength(String password) {
         int score = 0;
-        if (password.length() >= 8) score++;
-        if (password.matches(".*[A-Z].*")) score++;
-        if (password.matches(".*[a-z].*")) score++;
-        if (password.matches(".*\\d.*")) score++;
-        if (password.matches(".*[^a-zA-Z0-9].*")) score++;
+        if (password.length() >= 8)
+            score++;
+        if (password.matches(".*[A-Z].*"))
+            score++;
+        if (password.matches(".*[a-z].*"))
+            score++;
+        if (password.matches(".*\\d.*"))
+            score++;
+        if (password.matches(".*[^a-zA-Z0-9].*"))
+            score++;
 
-        if (score <= 2) return "Weak";
-        else if (score <= 4) return "Medium";
-        else return "Strong";
+        if (score <= 2)
+            return "Weak";
+        else if (score <= 4)
+            return "Medium";
+        else
+            return "Strong";
     }
 
     // === Renderers ===
@@ -307,15 +362,19 @@ public class PasswordPanel extends BaseAppPanel {
 
     static class StrengthRenderer extends DefaultTableCellRenderer {
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus,
-                                                       int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+                int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            if ("Weak".equals(value)) c.setForeground(Color.RED);
-            else if ("Medium".equals(value)) c.setForeground(Color.ORANGE);
-            else if ("Strong".equals(value)) c.setForeground(Color.GREEN.darker());
-            else c.setForeground(Color.BLACK);
+            if ("Weak".equals(value))
+                c.setForeground(Color.RED);
+            else if ("Medium".equals(value))
+                c.setForeground(Color.ORANGE);
+            else if ("Strong".equals(value))
+                c.setForeground(Color.GREEN.darker());
+            else
+                c.setForeground(Color.BLACK);
             return c;
         }
     }
+
 }

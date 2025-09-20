@@ -111,20 +111,18 @@ public class NotepadPanel extends BaseAppPanel {
     // === ACTIONS ===
 
     private void addNewAction(NotepadButton newBtn) {
-        newBtn.addActionListener(e -> {
+        newBtn.addActionListener(_ -> {
             textArea.setText("");
             currentFile = null;
             fileNameLabel.setText("New File");
             logLabel.setText("New file created");
 
-            System.out.println(e.getActionCommand());
         });
     }
 
     private void addOpenAction(NotepadButton openBtn) {
-        openBtn.addActionListener(e -> {
+        openBtn.addActionListener(_ -> {
 
-            System.out.println(e.getActionCommand());
             JFileChooser fileChooser = new JFileChooser();
             int option = fileChooser.showOpenDialog(parentFrame);
             if (option == JFileChooser.APPROVE_OPTION) {
@@ -147,9 +145,8 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addSaveAction(NotepadButton saveBtn) {
-        saveBtn.addActionListener(e -> {
+        saveBtn.addActionListener(_ -> {
 
-            System.out.println(e.getActionCommand());
             if (currentFile == null) {
                 saveAs();
             } else {
@@ -166,10 +163,9 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addSaveAsAction(NotepadButton saveAsBtn) {
-        saveAsBtn.addActionListener(e -> {
+        saveAsBtn.addActionListener(_ -> {
             saveAs();
 
-            System.out.println(e.getActionCommand());
         });
     }
 
@@ -190,12 +186,11 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addFindAction(NotepadButton findBtn) {
-        findBtn.addActionListener(e -> {
+        findBtn.addActionListener(_ -> {
 
             // String query = JOptionPane.showInputDialog(parentFrame, "Find:", "Find",
             // JOptionPane.PLAIN_MESSAGE);
 
-            System.out.println(e.getActionCommand());
             String query = findText.getText();
             textArea.requestFocusInWindow();
             if (query != null && !query.isEmpty()) {
@@ -214,9 +209,8 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addReplaceAction(NotepadButton replaceBtn) {
-        replaceBtn.addActionListener(e -> {
+        replaceBtn.addActionListener(_ -> {
 
-            System.out.println(e.getActionCommand());
             String find = findText.getText();
             String replace = replaceText.getText();
             if (!find.isEmpty()) {
@@ -240,9 +234,8 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addReplaceAllAction(NotepadButton replaceBtn) {
-        replaceBtn.addActionListener(e -> {
+        replaceBtn.addActionListener(_ -> {
 
-            System.out.println(e.getActionCommand());
             String find = findText.getText();
             String replace = replaceText.getText();
             if (!find.isEmpty()) {

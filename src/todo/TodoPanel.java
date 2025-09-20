@@ -60,7 +60,7 @@ public class TodoPanel extends BaseAppPanel {
         TodoButton searchBtn = new TodoButton("Filter");
         TodoButton clearFilter = new TodoButton("Clear Filter");
 
-        searchBtn.addActionListener(e -> applySearchFilter());
+        searchBtn.addActionListener(_ -> applySearchFilter());
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonsPanel.setOpaque(false);
@@ -70,7 +70,7 @@ public class TodoPanel extends BaseAppPanel {
         buttonsPanel.add(searchBtn);
         buttonsPanel.add(clearFilter);
 
-        clearFilter.addActionListener(e -> {
+        clearFilter.addActionListener(_ -> {
             sorter.setRowFilter(null);
             logLabel.setText("Showing all tasks");
         });
@@ -123,11 +123,12 @@ public class TodoPanel extends BaseAppPanel {
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));
 
         mainBody.add(scrollPane, BorderLayout.CENTER);
+
     }
 
     // === Actions ===
     private void addAddAction(TodoButton addBtn) {
-        addBtn.addActionListener(e -> {
+        addBtn.addActionListener(_ -> {
             JPanel panel = new JPanel();
 
             JTextField taskField = new JTextField();
@@ -138,10 +139,11 @@ public class TodoPanel extends BaseAppPanel {
 
             JComboBox<String> priorityBox = new JComboBox<>(new String[] { "Low", "Medium", "High" });
 
-            taskField.setPreferredSize(new Dimension(200, 25));
+            taskField.setPreferredSize(new Dimension(180, 25));
             panel.add(new JLabel("Task:"));
             panel.add(taskField);
             panel.add(new JLabel("Due Date:"));
+            dateChooser.setPreferredSize(new Dimension(100,25));
             panel.add(dateChooser);
             panel.add(new JLabel("Priority:"));
             panel.add(priorityBox);
@@ -165,7 +167,7 @@ public class TodoPanel extends BaseAppPanel {
     }
 
     private void addDeleteAction(TodoButton deleteBtn) {
-        deleteBtn.addActionListener(e -> {
+        deleteBtn.addActionListener(_ -> {
             int[] selectedRows = table.getSelectedRows();
             if (selectedRows.length == 0) {
                 logLabel.setText("No task selected!");
@@ -180,7 +182,7 @@ public class TodoPanel extends BaseAppPanel {
     }
 
     private void addSaveAction(TodoButton saveBtn) {
-        saveBtn.addActionListener(e -> saveTasks());
+        saveBtn.addActionListener(_ -> saveTasks());
     }
 
     private void saveTasks() {
@@ -204,8 +206,12 @@ public class TodoPanel extends BaseAppPanel {
         if (!currentFile.exists())
             return;
         model.setRowCount(0);
+        int dueTodayCount = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
             String line;
+            Date today = new Date();
+            String todayStr = sdf.format(today);
+
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
                 if (parts.length == 4) {
@@ -214,8 +220,19 @@ public class TodoPanel extends BaseAppPanel {
                     String priority = parts[2];
                     boolean done = Boolean.parseBoolean(parts[3]);
                     model.addRow(new Object[] { task, date, priority, done });
+
+                    if (sdf.format(date).equals(todayStr) && !done) {
+                        dueTodayCount++;
+                    }
                 }
             }
+
+            if (dueTodayCount > 0) {
+                logLabel.setText("You have " + dueTodayCount + " task(s) due today!");
+            } else {
+                logLabel.setText("No tasks due today.");
+            }
+
         } catch (Exception ex) {
             logLabel.setText("Error loading tasks!");
         }
