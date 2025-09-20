@@ -1,15 +1,16 @@
 package passwordManager;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 import components.BaseAppPanel;
 import components.MyButton;
 import components.MyColors;
 import components.MyFonts;
-import java.util.List;
 
 class PMButton extends MyButton {
     PMButton(String text) {
@@ -76,12 +77,11 @@ public class PasswordPanel extends BaseAppPanel {
         topPanel.add(logLabel, BorderLayout.SOUTH);
 
         // Table
-        String[] columns = { "Website", "Username", "Password" };
-
+        String[] columns = { "Website", "Username", "Password", "Strength" };
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                return true; // all editable
+                return col != 3; // Strength column is non-editable
             }
         };
 
@@ -91,8 +91,24 @@ public class PasswordPanel extends BaseAppPanel {
         sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
 
-        // Hide passwords initially
+        // Password column hidden initially
         table.getColumnModel().getColumn(2).setCellRenderer(new PasswordRenderer());
+
+        // Strength column colored
+        table.getColumnModel().getColumn(3).setCellRenderer(new StrengthRenderer());
+
+        // Update strength when editing existing password
+        model.addTableModelListener(e -> {
+            if (e.getType() == TableModelEvent.UPDATE) {
+                int row = e.getFirstRow();
+                int col = e.getColumn();
+                if (col == 2) { // Password column
+                    String password = table.getValueAt(row, col).toString();
+                    String strength = getPasswordStrength(password);
+                    table.setValueAt(strength, row, 3);
+                }
+            }
+        });
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));
@@ -104,23 +120,43 @@ public class PasswordPanel extends BaseAppPanel {
         addBtn.addActionListener(e -> {
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
             JTextField siteField = new JTextField(20);
             JTextField userField = new JTextField(20);
             JTextField passField = new JTextField(20);
+            JLabel strengthLabel = new JLabel("Strength: ");
 
             panel.add(new JLabel("Website:")); panel.add(siteField);
             panel.add(new JLabel("Username:")); panel.add(userField);
             panel.add(new JLabel("Password:")); panel.add(passField);
+            panel.add(strengthLabel);
+
+            // Update strength while typing
+            passField.getDocument().addDocumentListener(new DocumentListener() {
+                void update() {
+                    String password = passField.getText();
+                    String strength = getPasswordStrength(password);
+                    strengthLabel.setText("Strength: " + strength);
+                    if ("Weak".equals(strength)) strengthLabel.setForeground(Color.RED);
+                    else if ("Medium".equals(strength)) strengthLabel.setForeground(Color.ORANGE);
+                    else strengthLabel.setForeground(Color.GREEN.darker());
+                }
+                @Override public void insertUpdate(DocumentEvent e) { update(); }
+                @Override public void removeUpdate(DocumentEvent e) { update(); }
+                @Override public void changedUpdate(DocumentEvent e) { update(); }
+            });
 
             int result = JOptionPane.showConfirmDialog(parentFrame, panel, "Add Password",
                     JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
             if (result == JOptionPane.OK_OPTION) {
                 if (!siteField.getText().trim().isEmpty()) {
-                    model.addRow(new Object[] {
+                    String password = passField.getText().trim();
+                    model.addRow(new Object[]{
                             siteField.getText().trim(),
                             userField.getText().trim(),
-                            passField.getText().trim()
+                            password,
+                            getPasswordStrength(password)
                     });
                     logLabel.setText("Password added for " + siteField.getText().trim());
                 } else {
@@ -168,14 +204,13 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void loadPasswords() {
-        if (!currentFile.exists())
-            return;
+        if (!currentFile.exists()) return;
         model.setRowCount(0);
         try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length == 3) {
+                if (parts.length == 4) {
                     model.addRow(parts);
                 }
             }
@@ -214,24 +249,73 @@ public class PasswordPanel extends BaseAppPanel {
 
     private void addShowHideAction(PMButton showHideBtn) {
         showHideBtn.addActionListener(e -> {
-            passwordsVisible = !passwordsVisible;
-            TableColumn passwordColumn = table.getColumnModel().getColumn(2);
-            if (passwordsVisible) {
-                passwordColumn.setCellRenderer(null); // show actual passwords
-                showHideBtn.setText("Hide");
-            } else {
-                passwordColumn.setCellRenderer(new PasswordRenderer()); // hide passwords
-                showHideBtn.setText("Show");
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                logLabel.setText("Select a row to show/hide password");
+                return;
             }
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            TableColumn passwordColumn = table.getColumnModel().getColumn(2);
+
+            if (passwordsVisible) {
+                passwordColumn.setCellRenderer(new PasswordRenderer());
+                showHideBtn.setText("Show");
+            } else {
+                passwordColumn.setCellRenderer(new DefaultTableCellRenderer() {
+                    @Override
+                    public Component getTableCellRendererComponent(JTable table, Object value,
+                                                                   boolean isSelected, boolean hasFocus,
+                                                                   int row, int column) {
+                        if (row == selectedRow) {
+                            setText(value.toString());
+                        } else {
+                            setText("*".repeat(value.toString().length()));
+                        }
+                        setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+                        setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+                        return this;
+                    }
+                });
+                showHideBtn.setText("Hide");
+            }
+            passwordsVisible = !passwordsVisible;
             table.repaint();
         });
     }
 
-    // === Custom Renderer to hide passwords ===
+    // === Password strength calculation ===
+    private String getPasswordStrength(String password) {
+        int score = 0;
+        if (password.length() >= 8) score++;
+        if (password.matches(".*[A-Z].*")) score++;
+        if (password.matches(".*[a-z].*")) score++;
+        if (password.matches(".*\\d.*")) score++;
+        if (password.matches(".*[^a-zA-Z0-9].*")) score++;
+
+        if (score <= 2) return "Weak";
+        else if (score <= 4) return "Medium";
+        else return "Strong";
+    }
+
+    // === Renderers ===
     static class PasswordRenderer extends DefaultTableCellRenderer {
         @Override
         protected void setValue(Object value) {
             setText(value == null ? "" : "*".repeat(value.toString().length()));
+        }
+    }
+
+    static class StrengthRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if ("Weak".equals(value)) c.setForeground(Color.RED);
+            else if ("Medium".equals(value)) c.setForeground(Color.ORANGE);
+            else if ("Strong".equals(value)) c.setForeground(Color.GREEN.darker());
+            else c.setForeground(Color.BLACK);
+            return c;
         }
     }
 }

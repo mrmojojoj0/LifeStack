@@ -25,8 +25,8 @@ public class NotepadPanel extends BaseAppPanel {
     private JFrame parentFrame;
     private JLabel logLabel;
     private JLabel fileNameLabel;
-    private File currentFile; // track currently opened file
-    private int lastFindIndex = 0; // remember last search position
+    private File currentFile;
+    private int lastFindIndex = 0;
     private JTextPane findText;
     private JTextPane replaceText;
 
