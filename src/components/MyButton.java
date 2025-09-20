@@ -13,6 +13,7 @@ import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 
 public class MyButton extends JButton {
     public Color hoverBg;
@@ -22,10 +23,10 @@ public class MyButton extends JButton {
     public MyButton(String text) {
         super(text);
         this.setLayout(null);
-        this.setFont(MyFonts.TEXT_FONT_LARGE_BOLD);
+        this.setFont(MyFonts.TEXT_FONT_BOLD);
         this.setFocusPainted(false);
         this.setFocusable(false);
-        this.setBounds(0, 0, 120, 80);
+        this.setMargin(new Insets(0, 0, 0, 0));
 
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -52,7 +53,10 @@ public class MyButton extends JButton {
     public void paintBorder(Graphics g) {
         Graphics2D g2d = (Graphics2D) (g); // Downcasting: Superclass to Subclass (explicit cast needed)
         setBorderPainted(false);
-        super.paintBorder(g2d);
-    }
 
+        super.paintBorder(g2d);
+
+        
+    }
+    
 }

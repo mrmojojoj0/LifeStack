@@ -1,17 +1,11 @@
 package MyApp;
-import javax.swing.*;
+// import javax.swing.*;
 
 import Authenticator.Login;
-import Authenticator.SignUp;
-
-import java.io.*;
-import java.nio.file.*;
-
-
 
 public class Main {
         public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
+        // SwingUtilities.invokeLater(() -> {
             // if (Files.exists(Paths.get(CREDENTIAL_FILE))) {
             //     Login loginFrame = new Login();
             //     loginFrame.showLogin();
@@ -20,7 +14,7 @@ public class Main {
             // }
             Login l = new Login();
             l.show();
-        });
+        // });
     }
 
 }

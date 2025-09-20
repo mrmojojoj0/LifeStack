@@ -12,8 +12,7 @@ public abstract class BaseAppPanel extends JPanel {
         this.setLayout(new BorderLayout());
         this.setBackground(backgroundColor);
 
-        // Rounded border that looks good on green/orange/blue/red
-        this.setBorder(new LineBorder(new Color(50, 50, 50), 2, true));
+        this.setBorder(new LineBorder(new Color(50, 50, 50), 2, false));
 
         // --- Top Panel ---
         topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));

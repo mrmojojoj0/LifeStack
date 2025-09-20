@@ -5,10 +5,20 @@ import components.MyColors;
 import components.MyFonts;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
+import components.MyButton;
+
+class NotepadButton extends MyButton {
+    NotepadButton(String text) {
+        super(text);
+        this.setBackground(MyColors.notepadActive);
+        this.setForeground(Color.DARK_GRAY);
+        this.hoverBg = new Color(0xF0B650);
+    }
+}
+
 
 public class NotepadPanel extends BaseAppPanel {
     private JTextArea textArea;
@@ -17,6 +27,8 @@ public class NotepadPanel extends BaseAppPanel {
     private JLabel fileNameLabel;
     private File currentFile; // track currently opened file
     private int lastFindIndex = 0; // remember last search position
+    private JTextPane findText;
+    private JTextPane replaceText;
 
     public NotepadPanel(JFrame parentFrame) {
         super(MyColors.notepadInactive);
@@ -33,6 +45,17 @@ public class NotepadPanel extends BaseAppPanel {
         NotepadButton saveAsBtn = new NotepadButton("Save As");
         NotepadButton findBtn = new NotepadButton("Find");
         NotepadButton replaceBtn = new NotepadButton("Replace");
+        NotepadButton replaceAllBtn = new NotepadButton("Replace All");
+        findText = new JTextPane();
+        replaceText = new JTextPane();
+
+        findText.setPreferredSize(new Dimension(100, 25));
+        findText.setFont(MyFonts.TEXT_FONT_BOLD);
+        findText.setBorder(new LineBorder(Color.GRAY, 1));
+
+        replaceText.setPreferredSize(new Dimension(100, 25));
+        replaceText.setFont(MyFonts.TEXT_FONT_BOLD);
+        replaceText.setBorder(new LineBorder(Color.GRAY, 1));
 
         // Add actions
         addNewAction(newBtn);
@@ -41,6 +64,7 @@ public class NotepadPanel extends BaseAppPanel {
         addSaveAsAction(saveAsBtn);
         addFindAction(findBtn);
         addReplaceAction(replaceBtn);
+        addReplaceAllAction(replaceAllBtn);
 
         // Top panel layout
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
@@ -49,8 +73,11 @@ public class NotepadPanel extends BaseAppPanel {
         buttonsPanel.add(openBtn);
         buttonsPanel.add(saveBtn);
         buttonsPanel.add(saveAsBtn);
+        buttonsPanel.add(findText);
         buttonsPanel.add(findBtn);
+        buttonsPanel.add(replaceText);
         buttonsPanel.add(replaceBtn);
+        buttonsPanel.add(replaceAllBtn);
 
         topPanel.setLayout(new BorderLayout());
         topPanel.add(buttonsPanel, BorderLayout.NORTH);
@@ -89,11 +116,15 @@ public class NotepadPanel extends BaseAppPanel {
             currentFile = null;
             fileNameLabel.setText("New File");
             logLabel.setText("New file created");
+
+            System.out.println(e.getActionCommand());
         });
     }
 
     private void addOpenAction(NotepadButton openBtn) {
         openBtn.addActionListener(e -> {
+
+            System.out.println(e.getActionCommand());
             JFileChooser fileChooser = new JFileChooser();
             int option = fileChooser.showOpenDialog(parentFrame);
             if (option == JFileChooser.APPROVE_OPTION) {
@@ -108,9 +139,7 @@ public class NotepadPanel extends BaseAppPanel {
                     logLabel.setText("Opened " + currentFile.getName());
                 } catch (IOException ex) {
                     logLabel.setText("Error opening file!");
-                    JOptionPane.showMessageDialog(parentFrame,
-                            "Error opening file!",
-                            "Error",
+                    JOptionPane.showMessageDialog(parentFrame, "Error opening file!", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -119,6 +148,8 @@ public class NotepadPanel extends BaseAppPanel {
 
     private void addSaveAction(NotepadButton saveBtn) {
         saveBtn.addActionListener(e -> {
+
+            System.out.println(e.getActionCommand());
             if (currentFile == null) {
                 saveAs();
             } else {
@@ -127,9 +158,7 @@ public class NotepadPanel extends BaseAppPanel {
                     logLabel.setText("Saved " + currentFile.getName());
                 } catch (IOException ex) {
                     logLabel.setText("Error saving file!");
-                    JOptionPane.showMessageDialog(parentFrame,
-                            "Error saving file!",
-                            "Error",
+                    JOptionPane.showMessageDialog(parentFrame, "Error saving file!", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -137,7 +166,11 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addSaveAsAction(NotepadButton saveAsBtn) {
-        saveAsBtn.addActionListener(e -> saveAs());
+        saveAsBtn.addActionListener(e -> {
+            saveAs();
+
+            System.out.println(e.getActionCommand());
+        });
     }
 
     private void saveAs() {
@@ -151,17 +184,20 @@ public class NotepadPanel extends BaseAppPanel {
                 logLabel.setText("Saved As " + currentFile.getName());
             } catch (IOException ex) {
                 logLabel.setText("Error saving file!");
-                JOptionPane.showMessageDialog(parentFrame,
-                        "Error saving file!",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(parentFrame, "Error saving file!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
     private void addFindAction(NotepadButton findBtn) {
         findBtn.addActionListener(e -> {
-            String query = JOptionPane.showInputDialog(parentFrame, "Find:", "Find", JOptionPane.PLAIN_MESSAGE);
+
+            // String query = JOptionPane.showInputDialog(parentFrame, "Find:", "Find",
+            // JOptionPane.PLAIN_MESSAGE);
+
+            System.out.println(e.getActionCommand());
+            String query = findText.getText();
+            textArea.requestFocusInWindow();
             if (query != null && !query.isEmpty()) {
                 String content = textArea.getText();
                 lastFindIndex = content.indexOf(query, lastFindIndex);
@@ -179,30 +215,46 @@ public class NotepadPanel extends BaseAppPanel {
 
     private void addReplaceAction(NotepadButton replaceBtn) {
         replaceBtn.addActionListener(e -> {
-            JPanel panel = new JPanel(new GridLayout(2, 2));
-            JTextField findField = new JTextField();
-            JTextField replaceField = new JTextField();
-            panel.add(new JLabel("Find:"));
-            panel.add(findField);
-            panel.add(new JLabel("Replace with:"));
-            panel.add(replaceField);
 
-            int result = JOptionPane.showConfirmDialog(parentFrame, panel,
-                    "Find and Replace", JOptionPane.OK_CANCEL_OPTION);
-
-            if (result == JOptionPane.OK_OPTION) {
-                String find = findField.getText();
-                String replace = replaceField.getText();
-                if (!find.isEmpty()) {
-                    String content = textArea.getText();
-                    if (content.contains(find)) {
-                        textArea.setText(content.replace(find, replace));
-                        logLabel.setText("Replaced all '" + find + "' with '" + replace + "'");
+            System.out.println(e.getActionCommand());
+            String find = findText.getText();
+            String replace = replaceText.getText();
+            if (!find.isEmpty()) {
+                String content = textArea.getText();
+                if (content.contains(find)) {
+                    String selected = textArea.getSelectedText();
+                    if (selected != null) {
+                        String replaced = selected.replace(find, replace);
+                        textArea.replaceSelection(replaced);
+                        logLabel.setText("Replaced '" + find + "' with '" + replace + "'");
                     } else {
-                        logLabel.setText("No matches for '" + find + "'");
+
+                        logLabel.setText("No text selected.");
                     }
+                } else {
+                    logLabel.setText("No matches for '" + find + "'");
                 }
             }
+
+        });
+    }
+
+    private void addReplaceAllAction(NotepadButton replaceBtn) {
+        replaceBtn.addActionListener(e -> {
+
+            System.out.println(e.getActionCommand());
+            String find = findText.getText();
+            String replace = replaceText.getText();
+            if (!find.isEmpty()) {
+                String content = textArea.getText();
+                if (content.contains(find)) {
+                    textArea.setText(content.replace(find, replace));
+                    logLabel.setText("Replaced all '" + find + "' with '" + replace + "'");
+                } else {
+                    logLabel.setText("No matches for '" + find + "'");
+                }
+            }
+
         });
     }
 }

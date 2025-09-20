@@ -10,54 +10,70 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import components.MyButton;
+import java.util.List;
+
+import com.toedter.calendar.JDateChooser;
+
+class TodoButton extends MyButton {
+
+    TodoButton(String text) {
+        super(text);
+        this.setBackground(new Color(0xdf4f4f));
+        this.hoverBg = MyColors.toDoActive;
+    }
+}
 
 public class TodoPanel extends BaseAppPanel {
+    private final File currentFile;
+
     private JFrame parentFrame;
     private JTable table;
     private DefaultTableModel model;
     private JLabel logLabel;
-    private final File currentFile; // default file in user directory
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     private TableRowSorter<DefaultTableModel> sorter;
-    private JTextField searchField;
 
     public TodoPanel(JFrame parentFrame) {
         super(MyColors.toDoInactive);
         this.parentFrame = parentFrame;
         currentFile = new File(System.getProperty("user.home"), "todo_tasks.csv");
         buildUI();
-        loadTasks(); // load by default
+        loadTasks();
     }
 
     @Override
     protected void buildUI() {
         // Toolbar Buttons
-        JButton addBtn = new JButton("Add Task");
-        JButton doneBtn = new JButton("Mark as Done");
-        JButton deleteBtn = new JButton("Delete Task");
-        JButton saveBtn = new JButton("Save");
+        TodoButton addBtn = new TodoButton("New");
+        TodoButton deleteBtn = new TodoButton("Delete");
+        TodoButton saveBtn = new TodoButton("Save");
 
         addAddAction(addBtn);
-        addMarkDoneAction(doneBtn);
         addDeleteAction(deleteBtn);
         addSaveAction(saveBtn);
 
-        // Search bar
-        searchField = new JTextField(15);
-        JButton searchBtn = new JButton("Search");
+        TodoButton searchBtn = new TodoButton("Filter");
+        TodoButton clearFilter = new TodoButton("Clear Filter");
+
         searchBtn.addActionListener(e -> applySearchFilter());
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonsPanel.setOpaque(false);
         buttonsPanel.add(addBtn);
-        buttonsPanel.add(doneBtn);
         buttonsPanel.add(deleteBtn);
         buttonsPanel.add(saveBtn);
-        buttonsPanel.add(new JLabel("Search:"));
-        buttonsPanel.add(searchField);
         buttonsPanel.add(searchBtn);
+        buttonsPanel.add(clearFilter);
+
+        clearFilter.addActionListener(e -> {
+            sorter.setRowFilter(null);
+            logLabel.setText("Showing all tasks");
+        });
 
         logLabel = new JLabel(" ");
         logLabel.setFont(MyFonts.TEXT_FONT_BOLD);
@@ -68,15 +84,16 @@ public class TodoPanel extends BaseAppPanel {
         topPanel.add(logLabel, BorderLayout.SOUTH);
 
         // Table
-        String[] columns = {"Task", "Due Date", "Priority", "Done"};
+        String[] columns = { "Task", "Due Date", "Priority", "Status" };
+
         model = new DefaultTableModel(columns, 0) {
             @Override
             public Class<?> getColumnClass(int col) {
                 return switch (col) {
-                    case 1 -> Date.class;
-                    case 2 -> String.class;
-                    case 3 -> Boolean.class;
-                    default -> String.class;
+                case 1 -> Date.class;
+                case 2 -> String.class;
+                case 3 -> Boolean.class;
+                default -> String.class;
                 };
             }
 
@@ -109,31 +126,36 @@ public class TodoPanel extends BaseAppPanel {
     }
 
     // === Actions ===
-    private void addAddAction(JButton addBtn) {
+    private void addAddAction(TodoButton addBtn) {
         addBtn.addActionListener(e -> {
-            JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
-            JTextField taskField = new JTextField();
-            JSpinner dateSpinner = new JSpinner(new SpinnerDateModel());
-            dateSpinner.setEditor(new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd"));
-            JComboBox<String> priorityBox = new JComboBox<>(new String[]{"Low", "Medium", "High"});
+            JPanel panel = new JPanel();
 
+            JTextField taskField = new JTextField();
+
+            JDateChooser dateChooser = new JDateChooser();
+            dateChooser.setDate(new Date());
+            dateChooser.setDateFormatString("dd/MM/yyyy");
+
+            JComboBox<String> priorityBox = new JComboBox<>(new String[] { "Low", "Medium", "High" });
+
+            taskField.setPreferredSize(new Dimension(200, 25));
             panel.add(new JLabel("Task:"));
             panel.add(taskField);
             panel.add(new JLabel("Due Date:"));
-            panel.add(dateSpinner);
+            panel.add(dateChooser);
             panel.add(new JLabel("Priority:"));
             panel.add(priorityBox);
 
-            int result = JOptionPane.showConfirmDialog(parentFrame, panel,
-                    "Add Task", JOptionPane.OK_CANCEL_OPTION);
+            int result = JOptionPane.showConfirmDialog(parentFrame, panel, "Add New Task",
+                    JOptionPane.OK_CANCEL_OPTION);
 
             if (result == JOptionPane.OK_OPTION) {
                 String task = taskField.getText().trim();
-                Date date = (Date) dateSpinner.getValue();
+                Date date = (Date) dateChooser.getDate();
                 String priority = (String) priorityBox.getSelectedItem();
 
                 if (!task.isEmpty()) {
-                    model.addRow(new Object[]{task, date, priority, false});
+                    model.addRow(new Object[] { task, date, priority, false });
                     logLabel.setText("Task added: " + task);
                 } else {
                     logLabel.setText("Task name required!");
@@ -142,23 +164,7 @@ public class TodoPanel extends BaseAppPanel {
         });
     }
 
-    private void addMarkDoneAction(JButton doneBtn) {
-        doneBtn.addActionListener(e -> {
-            int[] selectedRows = table.getSelectedRows();
-            if (selectedRows.length == 0) {
-                logLabel.setText("No task selected!");
-                return;
-            }
-            for (int row : selectedRows) {
-                int modelRow = table.convertRowIndexToModel(row);
-                model.setValueAt(true, modelRow, 3);
-            }
-            table.repaint();
-            logLabel.setText("Marked as done");
-        });
-    }
-
-    private void addDeleteAction(JButton deleteBtn) {
+    private void addDeleteAction(TodoButton deleteBtn) {
         deleteBtn.addActionListener(e -> {
             int[] selectedRows = table.getSelectedRows();
             if (selectedRows.length == 0) {
@@ -173,7 +179,7 @@ public class TodoPanel extends BaseAppPanel {
         });
     }
 
-    private void addSaveAction(JButton saveBtn) {
+    private void addSaveAction(TodoButton saveBtn) {
         saveBtn.addActionListener(e -> saveTasks());
     }
 
@@ -195,7 +201,8 @@ public class TodoPanel extends BaseAppPanel {
     }
 
     private void loadTasks() {
-        if (!currentFile.exists()) return;
+        if (!currentFile.exists())
+            return;
         model.setRowCount(0);
         try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
             String line;
@@ -206,7 +213,7 @@ public class TodoPanel extends BaseAppPanel {
                     Date date = sdf.parse(parts[1]);
                     String priority = parts[2];
                     boolean done = Boolean.parseBoolean(parts[3]);
-                    model.addRow(new Object[]{task, date, priority, done});
+                    model.addRow(new Object[] { task, date, priority, done });
                 }
             }
         } catch (Exception ex) {
@@ -215,14 +222,66 @@ public class TodoPanel extends BaseAppPanel {
     }
 
     private void applySearchFilter() {
-        String text = searchField.getText().trim();
-        if (text.isEmpty()) {
-            sorter.setRowFilter(null);
-            logLabel.setText("Showing all tasks");
-        } else {
-            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 0)); // case-insensitive filter on "Task" column
-            logLabel.setText("Filtered by: " + text);
+        // Create panel with vertical layout
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Fields
+        JTextField taskField = new JTextField(20);
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("dd/MM/yyyy");
+        JComboBox<String> priorityBox = new JComboBox<>(new String[] { "", "Low", "Medium", "High" });
+        JComboBox<String> doneBox = new JComboBox<>(new String[] { "", "Done", "Not Done" });
+
+        // Add fields with labels
+        panel.add(new JLabel("Task:"));
+        panel.add(taskField);
+        panel.add(new JLabel("Due Date:"));
+        panel.add(dateChooser);
+        panel.add(new JLabel("Priority:"));
+        panel.add(priorityBox);
+        panel.add(new JLabel("Status:"));
+        panel.add(doneBox);
+
+        if (JOptionPane.showConfirmDialog(parentFrame, panel, "Filter Tasks", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION)
+            return;
+
+        // Build filters
+        List<RowFilter<Object, Object>> filters = new ArrayList<>();
+
+        if (!taskField.getText().trim().isEmpty())
+            filters.add(RowFilter.regexFilter("(?i)" + taskField.getText().trim(), 0));
+
+        if (dateChooser.getDate() != null)
+            filters.add(new RowFilter<Object, Object>() {
+                public boolean include(Entry<?, ?> entry) {
+                    Date cellDate = (Date) entry.getValue(1);
+                    Calendar c1 = Calendar.getInstance();
+                    c1.setTime(cellDate);
+                    Calendar c2 = Calendar.getInstance();
+                    c2.setTime(dateChooser.getDate());
+                    return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
+                            && c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH)
+                            && c1.get(Calendar.DAY_OF_MONTH) == c2.get(Calendar.DAY_OF_MONTH);
+                }
+            });
+
+        if (priorityBox.getSelectedIndex() > 0)
+            filters.add(RowFilter.regexFilter("^" + priorityBox.getSelectedItem() + "$", 2));
+
+        if (doneBox.getSelectedIndex() > 0) {
+            boolean done = doneBox.getSelectedItem().equals("Done");
+            filters.add(new RowFilter<Object, Object>() {
+                public boolean include(Entry<?, ?> entry) {
+                    return (Boolean) entry.getValue(3) == done;
+                }
+            });
         }
+
+        sorter.setRowFilter(filters.isEmpty() ? null : RowFilter.andFilter(filters));
+        logLabel.setText(filters.isEmpty() ? "Showing all tasks" : "Filter applied");
     }
 
     // === Priority Renderer ===
@@ -232,11 +291,12 @@ public class TodoPanel extends BaseAppPanel {
             setText("");
             if (value != null) {
                 Color color = switch (value.toString()) {
-                    case "High" -> Color.RED;
-                    case "Medium" -> Color.ORANGE;
-                    default -> Color.GREEN;
+                case "High" -> Color.RED;
+                case "Medium" -> Color.ORANGE;
+                default -> Color.GREEN;
                 };
                 setIcon(makeColorIcon(color));
+                setText(value.toString());
             } else {
                 setIcon(null);
             }
