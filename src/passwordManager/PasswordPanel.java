@@ -67,7 +67,7 @@ public class PasswordPanel extends BaseAppPanel {
         buttonsPanel.add(showHideBtn);
         buttonsPanel.add(copyButton);
 
-        clearFilterBtn.addActionListener(_ -> {
+        clearFilterBtn.addActionListener(e -> {
             sorter.setRowFilter(null);
             logLabel.setText("Showing all passwords");
         });
@@ -121,7 +121,7 @@ public class PasswordPanel extends BaseAppPanel {
 
     // === Actions ===
     private void addAddAction(PMButton addBtn) {
-        addBtn.addActionListener(_ -> {
+        addBtn.addActionListener(e -> {
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -185,7 +185,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addDeleteAction(PMButton deleteBtn) {
-        deleteBtn.addActionListener(_ -> {
+        deleteBtn.addActionListener(e -> {
             int[] selectedRows = table.getSelectedRows();
             if (selectedRows.length == 0) {
                 logLabel.setText("No entry selected!");
@@ -200,7 +200,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addSaveAction(PMButton saveBtn) {
-        saveBtn.addActionListener(_ -> savePasswords());
+        saveBtn.addActionListener(e -> savePasswords());
     }
 
     private void savePasswords() {
@@ -238,7 +238,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addFilterAction(PMButton filterBtn) {
-        filterBtn.addActionListener(_ -> {
+        filterBtn.addActionListener(e -> {
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -269,7 +269,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addShowHideAction(PMButton showHideBtn) {
-        showHideBtn.addActionListener(_ -> {
+        showHideBtn.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow == -1) {
                 logLabel.setText("Select a row to show/hide password");
@@ -303,7 +303,7 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void addCopyAction(PMButton cButton) {
-        cButton.addActionListener(_ -> {
+        cButton.addActionListener(e -> {
             int row = table.getSelectedRow();
             int col = table.getSelectedColumn();
 

@@ -63,16 +63,16 @@ public class FinancePanel extends BaseAppPanel {
         FinanceButton clearFilterBtn = new FinanceButton("Clear Filter");
         FinanceButton exportBtn = new FinanceButton("Export PDF");
 
-        addBtn.addActionListener(_ -> addRecord());
-        deleteBtn.addActionListener(_ -> deleteRecord());
-        saveBtn.addActionListener(_ -> saveRecords());
-        filterBtn.addActionListener(_ -> applyFilter());
-        clearFilterBtn.addActionListener(_ -> {
+        addBtn.addActionListener(e -> addRecord());
+        deleteBtn.addActionListener(e -> deleteRecord());
+        saveBtn.addActionListener(e -> saveRecords());
+        filterBtn.addActionListener(e -> applyFilter());
+        clearFilterBtn.addActionListener(e -> {
             sorter.setRowFilter(null);
             updateChart();
             logLabel.setText("Filter cleared");
         });
-        exportBtn.addActionListener(_ -> exportPdf());
+        exportBtn.addActionListener(e -> exportPdf());
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonsPanel.setOpaque(false);

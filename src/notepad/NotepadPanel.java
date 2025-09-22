@@ -111,7 +111,7 @@ public class NotepadPanel extends BaseAppPanel {
     // === ACTIONS ===
 
     private void addNewAction(NotepadButton newBtn) {
-        newBtn.addActionListener(_ -> {
+        newBtn.addActionListener(e -> {
             textArea.setText("");
             currentFile = null;
             fileNameLabel.setText("New File");
@@ -121,7 +121,7 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addOpenAction(NotepadButton openBtn) {
-        openBtn.addActionListener(_ -> {
+        openBtn.addActionListener(e -> {
 
             JFileChooser fileChooser = new JFileChooser();
             int option = fileChooser.showOpenDialog(parentFrame);
@@ -145,7 +145,7 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addSaveAction(NotepadButton saveBtn) {
-        saveBtn.addActionListener(_ -> {
+        saveBtn.addActionListener(e -> {
 
             if (currentFile == null) {
                 saveAs();
@@ -163,7 +163,7 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addSaveAsAction(NotepadButton saveAsBtn) {
-        saveAsBtn.addActionListener(_ -> {
+        saveAsBtn.addActionListener(e -> {
             saveAs();
 
         });
@@ -186,7 +186,7 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addFindAction(NotepadButton findBtn) {
-        findBtn.addActionListener(_ -> {
+        findBtn.addActionListener(e -> {
 
             // String query = JOptionPane.showInputDialog(parentFrame, "Find:", "Find",
             // JOptionPane.PLAIN_MESSAGE);
@@ -209,7 +209,7 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addReplaceAction(NotepadButton replaceBtn) {
-        replaceBtn.addActionListener(_ -> {
+        replaceBtn.addActionListener(e -> {
 
             String find = findText.getText();
             String replace = replaceText.getText();
@@ -234,7 +234,7 @@ public class NotepadPanel extends BaseAppPanel {
     }
 
     private void addReplaceAllAction(NotepadButton replaceBtn) {
-        replaceBtn.addActionListener(_ -> {
+        replaceBtn.addActionListener(e -> {
 
             String find = findText.getText();
             String replace = replaceText.getText();

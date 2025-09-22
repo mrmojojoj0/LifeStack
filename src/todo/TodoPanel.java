@@ -60,7 +60,7 @@ public class TodoPanel extends BaseAppPanel {
         TodoButton searchBtn = new TodoButton("Filter");
         TodoButton clearFilter = new TodoButton("Clear Filter");
 
-        searchBtn.addActionListener(_ -> applySearchFilter());
+        searchBtn.addActionListener(e -> applySearchFilter());
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonsPanel.setOpaque(false);
@@ -70,7 +70,7 @@ public class TodoPanel extends BaseAppPanel {
         buttonsPanel.add(searchBtn);
         buttonsPanel.add(clearFilter);
 
-        clearFilter.addActionListener(_ -> {
+        clearFilter.addActionListener(e -> {
             sorter.setRowFilter(null);
             logLabel.setText("Showing all tasks");
         });
@@ -128,7 +128,7 @@ public class TodoPanel extends BaseAppPanel {
 
     // === Actions ===
     private void addAddAction(TodoButton addBtn) {
-        addBtn.addActionListener(_ -> {
+        addBtn.addActionListener(e -> {
             JPanel panel = new JPanel();
 
             JTextField taskField = new JTextField();
@@ -167,7 +167,7 @@ public class TodoPanel extends BaseAppPanel {
     }
 
     private void addDeleteAction(TodoButton deleteBtn) {
-        deleteBtn.addActionListener(_ -> {
+        deleteBtn.addActionListener(e -> {
             int[] selectedRows = table.getSelectedRows();
             if (selectedRows.length == 0) {
                 logLabel.setText("No task selected!");
@@ -182,7 +182,7 @@ public class TodoPanel extends BaseAppPanel {
     }
 
     private void addSaveAction(TodoButton saveBtn) {
-        saveBtn.addActionListener(_ -> saveTasks());
+        saveBtn.addActionListener(e -> saveTasks());
     }
 
     private void saveTasks() {
