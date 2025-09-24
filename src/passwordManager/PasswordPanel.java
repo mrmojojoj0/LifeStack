@@ -6,12 +6,14 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
+import java.awt.datatransfer.*;
 import java.util.List;
+
+import Authenticator.Encryptor;
 import components.BaseAppPanel;
 import components.MyButton;
 import components.MyColors;
 import components.MyFonts;
-import java.awt.datatransfer.*;
 
 class PMButton extends MyButton {
     PMButton(String text) {
@@ -22,6 +24,7 @@ class PMButton extends MyButton {
 }
 
 public class PasswordPanel extends BaseAppPanel {
+
     private final File currentFile;
     private JFrame parentFrame;
     private JTable table;
@@ -29,12 +32,14 @@ public class PasswordPanel extends BaseAppPanel {
     private JLabel logLabel;
     private TableRowSorter<DefaultTableModel> sorter;
 
-    private boolean passwordsVisible = false; // toggle state
+    private boolean passwordsVisible = false;
+
+    private static final Encryptor encryptor = new Encryptor();
 
     public PasswordPanel(JFrame parentFrame) {
         super(MyColors.passwordInactive);
         this.parentFrame = parentFrame;
-        currentFile = new File(System.getProperty("user.home"), "passwords.csv");
+        currentFile = new File(System.getProperty("user.home"), "lifestack/passwords.csv");
         buildUI();
         loadPasswords();
     }
@@ -95,20 +100,16 @@ public class PasswordPanel extends BaseAppPanel {
         sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
 
-        // Password column hidden initially
         table.getColumnModel().getColumn(2).setCellRenderer(new PasswordRenderer());
-
-        // Strength column colored
         table.getColumnModel().getColumn(3).setCellRenderer(new StrengthRenderer());
 
-        // Update strength when editing existing password
         model.addTableModelListener(e -> {
             if (e.getType() == TableModelEvent.UPDATE) {
                 int row = e.getFirstRow();
                 int col = e.getColumn();
-                if (col == 2) { // Password column
+                if (col == 2) {
                     String password = table.getValueAt(row, col).toString();
-                    String strength = getPasswordStrength(password);
+                    String strength = StrengthChecker.getPasswordStrength(password);
                     table.setValueAt(strength, row, 3);
                 }
             }
@@ -138,11 +139,10 @@ public class PasswordPanel extends BaseAppPanel {
             panel.add(passField);
             panel.add(strengthLabel);
 
-            // Update strength while typing
             passField.getDocument().addDocumentListener(new DocumentListener() {
                 void update() {
                     String password = passField.getText();
-                    String strength = getPasswordStrength(password);
+                    String strength = StrengthChecker.getPasswordStrength(password);
                     strengthLabel.setText("Strength: " + strength);
                     if ("Weak".equals(strength))
                         strengthLabel.setForeground(Color.RED);
@@ -174,8 +174,10 @@ public class PasswordPanel extends BaseAppPanel {
             if (result == JOptionPane.OK_OPTION) {
                 if (!siteField.getText().trim().isEmpty()) {
                     String password = passField.getText().trim();
-                    model.addRow(new Object[] { siteField.getText().trim(), userField.getText().trim(), password,
-                            getPasswordStrength(password) });
+                    String username = userField.getText().trim();
+                    // Store plain text in table
+                    model.addRow(new Object[] { siteField.getText().trim(), username, password,
+                            StrengthChecker.getPasswordStrength(password) });
                     logLabel.setText("Password added for " + siteField.getText().trim());
                 } else {
                     logLabel.setText("Website is required!");
@@ -204,19 +206,27 @@ public class PasswordPanel extends BaseAppPanel {
     }
 
     private void savePasswords() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(currentFile))) {
-            for (int i = 0; i < model.getRowCount(); i++) {
-                List<String> row = new ArrayList<>();
-                for (int j = 0; j < model.getColumnCount(); j++) {
-                    row.add(model.getValueAt(i, j).toString());
+        try {
+            currentFile.getParentFile().mkdirs();
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(currentFile))) {
+                for (int i = 0; i < model.getRowCount(); i++) {
+                    String website = model.getValueAt(i, 0).toString();
+                    String username = model.getValueAt(i, 1).toString();
+                    String password = model.getValueAt(i, 2).toString();
+                    String strength = model.getValueAt(i, 3).toString();
+
+                    // encrypt only when saving
+                    String usernameEnc = encryptor.encrypt(username);
+                    String passwordEnc = encryptor.encrypt(password);
+
+                    writer.write(String.join(",", website, usernameEnc, passwordEnc, strength));
+                    writer.newLine();
                 }
-                writer.write(String.join(",", row));
-                writer.newLine();
             }
-            logLabel.setText("Passwords saved");
+            logLabel.setText("Passwords saved (encrypted)");
         } catch (Exception ex) {
             logLabel.setText("Error saving passwords!");
-            JOptionPane.showMessageDialog(parentFrame, "Error saving passwords!", "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
@@ -227,13 +237,18 @@ public class PasswordPanel extends BaseAppPanel {
         try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
+                String[] parts = line.split(",", 4);
                 if (parts.length == 4) {
-                    model.addRow(parts);
+                    // decrypt when loading
+                    String username = encryptor.decrypt(parts[1]);
+                    String password = encryptor.decrypt(parts[2]);
+                    model.addRow(new Object[] { parts[0], username, password, parts[3] });
                 }
             }
+            logLabel.setText("Passwords loaded");
         } catch (Exception ex) {
             logLabel.setText("Error loading passwords!");
+            ex.printStackTrace();
         }
     }
 
@@ -308,9 +323,7 @@ public class PasswordPanel extends BaseAppPanel {
             int col = table.getSelectedColumn();
 
             if (row != -1 && col != -1) {
-                // Get the actual value from the table cell
                 Object cellValue = table.getValueAt(row, col);
-
                 if (cellValue != null) {
                     String text = cellValue.toString();
                     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -330,29 +343,7 @@ public class PasswordPanel extends BaseAppPanel {
         });
     }
 
-    // === Password strength calculation ===
-    private String getPasswordStrength(String password) {
-        int score = 0;
-        if (password.length() >= 8)
-            score++;
-        if (password.matches(".*[A-Z].*"))
-            score++;
-        if (password.matches(".*[a-z].*"))
-            score++;
-        if (password.matches(".*\\d.*"))
-            score++;
-        if (password.matches(".*[^a-zA-Z0-9].*"))
-            score++;
-
-        if (score <= 2)
-            return "Weak";
-        else if (score <= 4)
-            return "Medium";
-        else
-            return "Strong";
-    }
-
-    // === Renderers ===
+    // === Password Renderers ===
     static class PasswordRenderer extends DefaultTableCellRenderer {
         @Override
         protected void setValue(Object value) {
@@ -376,5 +367,4 @@ public class PasswordPanel extends BaseAppPanel {
             return c;
         }
     }
-
 }

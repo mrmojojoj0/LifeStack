@@ -27,7 +27,7 @@ public class MyButton extends JButton {
         this.setFocusPainted(false);
         this.setFocusable(false);
         this.setMargin(new Insets(0, 0, 0, 0));
-
+        this.setForeground(Color.white);
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {

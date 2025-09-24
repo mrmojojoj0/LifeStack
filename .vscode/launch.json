@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "tester",
+      "request": "launch",
+      "mainClass": "Authenticator.tester",
+      "projectName": "LifeStack_b276a47a"
+    },
+    {
+      "type": "java",
       "name": "TodoPanel",
       "request": "launch",
       "mainClass": "todo.TodoPanel",

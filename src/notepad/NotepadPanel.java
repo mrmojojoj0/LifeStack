@@ -14,11 +14,9 @@ class NotepadButton extends MyButton {
     NotepadButton(String text) {
         super(text);
         this.setBackground(MyColors.notepadActive);
-        this.setForeground(Color.DARK_GRAY);
         this.hoverBg = new Color(0xF0B650);
     }
 }
-
 
 public class NotepadPanel extends BaseAppPanel {
     private JTextArea textArea;
@@ -188,8 +186,6 @@ public class NotepadPanel extends BaseAppPanel {
     private void addFindAction(NotepadButton findBtn) {
         findBtn.addActionListener(e -> {
 
-            // String query = JOptionPane.showInputDialog(parentFrame, "Find:", "Find",
-            // JOptionPane.PLAIN_MESSAGE);
 
             String query = findText.getText();
             textArea.requestFocusInWindow();

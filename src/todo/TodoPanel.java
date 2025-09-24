@@ -41,7 +41,7 @@ public class TodoPanel extends BaseAppPanel {
     public TodoPanel(JFrame parentFrame) {
         super(MyColors.toDoInactive);
         this.parentFrame = parentFrame;
-        currentFile = new File(System.getProperty("user.home"), "todo_tasks.csv");
+        currentFile = new File(System.getProperty("user.home"), "lifestack/todo_tasks.csv");
         buildUI();
         loadTasks();
     }

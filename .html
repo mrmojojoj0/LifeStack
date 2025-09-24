@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Login/SignUp Flowchart</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f8ff;
+    padding: 20px;
+  }
+
+  .flowchart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .flow-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+
+  .box {
+    background: #ffffff;
+    border: 2px solid #1e90ff;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 5px 20px;
+    min-width: 180px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .box:hover {
+    background: #e6f0ff;
+  }
+
+  .arrow-down, .arrow-right {
+    width: 0; 
+    height: 0; 
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    margin: auto;
+  }
+
+  .arrow-down {
+    border-top: 12px solid #1e90ff;
+    margin: 0 auto;
+  }
+
+  .arrow-right {
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 12px solid #1e90ff;
+    display: inline-block;
+    margin: 20px;
+  }
+
+  .sub-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>Login/SignUp Interactive Flowchart</h1>
+
+<div class="flowchart">
+  <div class="box">Program Start</div>
+  <div class="arrow-down"></div>
+  
+  <div class="box" onclick="toggleSubFlow('checkFile')">Check if credentials file exists</div>
+  
+  <div id="checkFile" class="flow-row hidden">
+    <div class="sub-flow">
+      <div class="box">File Exists → Show Login Frame</div>
+      <div class="arrow-down"></div>
+      <div class="box">User enters username & password → clicks Login</div>
+      <div class="arrow-down"></div>
+      <div class="box">Check credentials</div>
+      <div class="arrow-down"></div>
+      <div class="flow-row">
+        <div class="sub-flow">
+          <div class="box">Valid</div>
+          <div class="arrow-down"></div>
+          <div class="box">Start App</div>
+        </div>
+        <div class="sub-flow">
+          <div class="box">Invalid</div>
+          <div class="arrow-down"></div>
+          <div class="box">Show Error Dialog</div>
+          <div class="arrow-down"></div>
+          <div class="box">Retry → Back to Login / Cancel → Exit</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-flow">
+      <div class="box">File Not Exists → Show SignUp Frame</div>
+      <div class="arrow-down"></div>
+      <div class="box">User enters username & password → clicks Sign Up</div>
+      <div class="arrow-down"></div>
+      <div class="box">Validate input fields</div>
+      <div class="arrow-down"></div>
+      <div class="box">Credentials valid?</div>
+      <div class="arrow-down"></div>
+      <div class="box">Save credentials</div>
+      <div class="arrow-down"></div>
+      <div class="box">Show Success Dialog</div>
+      <div class="arrow-down"></div>
+      <div class="box">Open Login Frame</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSubFlow(id) {
+  const element = document.getElementById(id);
+  element.classList.toggle('hidden');
+}
+</script>
+
+</body>
+</html>

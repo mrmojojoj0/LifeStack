@@ -13,7 +13,7 @@ import financeManager.FinancePanel;
 public class App {
     public static void start() {
         JFrame mainFrame = new JFrame("");
-        // mainFrame.setUndecorated(true);
+
         mainFrame.setSize(800, 600);
         mainFrame.setLayout(new BorderLayout());
 
@@ -22,19 +22,10 @@ public class App {
                 { "\uee7e", MyColors.passwordInactive, new PasswordPanel(mainFrame) },
                 { "\ue8c7", MyColors.financeInactive, new FinancePanel(mainFrame) } };
 
-        // JPanel titleBar = new JPanel();
-        // JLabel title = new JLabel("");
-        ImageIcon titleIcon = new ImageIcon("src/resources/icon48.png");
+
+        ImageIcon titleIcon = new ImageIcon("src/resources/icon.png");
         mainFrame.setIconImage(titleIcon.getImage());
 
-        // title.setIcon(titleIcon);
-        // titleBar.setPreferredSize(new Dimension(800, 48));
-        // titleBar.setLayout(null);
-        // title.setBounds(5, 5, 500, 48);
-        // titleBar.add(title);
-
-        // titleBar.setFont(components.MyFonts.ICON_FONT_LARGE);
-        // mainFrame.add(titleBar, BorderLayout.NORTH);
 
         JTabbedPane mainPanel = new JTabbedPane(JTabbedPane.LEFT);
         mainPanel.setUI(new components.MyTabbedPaneUI());

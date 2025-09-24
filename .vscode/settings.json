@@ -5,8 +5,9 @@
   "java.project.outputPath": "build",
   "java.format.settings.url": ".vscode/java-formatter.xml",
   "java.project.referencedLibraries": [
-    "lib\\jfreechart-1.5.4.jar",
+    "lib\\jasypt-1.9.3.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\io-9.3.0.jar",
+    "c:\\Users\\sakin\\OneDrive\\Desktop\\LifeStack\\lib\\tink-1.18.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\font-asian-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\styled-xml-parser-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\jcalendar-1.4\\lib\\junit-4.6.jar",
@@ -27,6 +28,7 @@
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\hyph-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\forms-9.3.0.jar",
     "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\barcodes-9.3.0.jar",
-    "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\bouncy-castle-connector-9.3.0.jar"
+    "c:\\Users\\sakin\\Downloads\\Compressed\\iText-Core-9.3.0-only-jars\\bouncy-castle-connector-9.3.0.jar",
+    "c:\\Users\\sakin\\OneDrive\\Desktop\\LifeStack\\lib\\jfreechart-1.5.4.jar"
   ]
 }

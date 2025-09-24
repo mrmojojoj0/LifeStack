@@ -1,7 +1,7 @@
 package Authenticator;
+
 import components.MyButton;
 import components.MyFonts;
-
 
 import javax.swing.*;
 
@@ -9,11 +9,13 @@ import java.awt.*;
 
 public abstract class AuthFrame {
     protected static final java.nio.file.Path CREDENTIAL_PATH = java.nio.file.Paths.get(System.getProperty("user.home"),
-            ".lifestack_credentials");
+            "/lifestack", ".lifestack_credentials");
 
     protected JFrame frame;
 
-    protected ImageIcon icon = new ImageIcon("src/resources/icon48.png");;
+    protected ImageIcon logoIcon = new ImageIcon("src/resources/logo-48.png");
+    protected ImageIcon icon = new ImageIcon("src/resources/icon.png");
+
     protected static final JLabel USER_LABEL = new JLabel("\uea8c");
     protected JTextField USER_FIELD;
     protected static final JLabel PASS_LABEL = new JLabel("\ue72e");
@@ -31,8 +33,9 @@ public abstract class AuthFrame {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setLayout(new GridBagLayout());
+        frame.setIconImage(icon.getImage());
     }
-    
+
     protected void styleButton(MyButton btn, Color bg, Color fg, Font font) {
         btn.setBackground(bg);
         btn.setForeground(fg);
@@ -45,7 +48,7 @@ public abstract class AuthFrame {
 
         heading.setHorizontalTextPosition(SwingConstants.CENTER);
         heading.setVerticalTextPosition(SwingConstants.BOTTOM);
-        heading.setIcon(icon);
+        heading.setIcon(logoIcon);
         heading.setFont(MyFonts.TEXT_FONT_EXTRA_LARGE_BOLD);
         USER_LABEL.setFont(MyFonts.ICON_FONT_EXTRA_LARGE);
         PASS_LABEL.setFont(MyFonts.ICON_FONT_EXTRA_LARGE);

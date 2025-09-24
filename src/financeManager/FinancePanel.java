@@ -12,56 +12,58 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-
 import com.toedter.calendar.JDateChooser;
-import org.jfree.chart.*;
-import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.chart.renderer.category.StandardBarPainter;
-import org.jfree.data.category.*;
 
 // PDF Export
-import org.apache.pdfbox.pdmodel.*;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+class FinanceButton extends MyButton {
+    FinanceButton(String text) {
+        super(text);
+        this.setBackground(new Color(0x4CAF50));
+        this.hoverBg = new Color(0x81C784);
+        this.setForeground(Color.WHITE);
+    }
+}
+
+class TypeRenderer extends DefaultTableCellRenderer {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+            int row, int column) {
+        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        if ("Earning".equals(value))
+            c.setForeground(MyColors.financeActive);
+        else if ("Expense".equals(value))
+            c.setForeground(Color.RED);
+        return c;
+    }
+}
 
 public class FinancePanel extends BaseAppPanel {
     private final File currentFile;
     private JTable table;
     private DefaultTableModel model;
     private JLabel logLabel;
+    private JLabel totalsLabel; 
     private TableRowSorter<DefaultTableModel> sorter;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    private JPanel chartPanel;
+    private ExpenseGraph chartPanel;
 
     public FinancePanel(JFrame parentFrame) {
-        super(MyColors.toDoInactive);
-        currentFile = new File(System.getProperty("user.home"), "finance_records.csv");
+        super(MyColors.financeInactive);
+        currentFile = new File(System.getProperty("user.home"), "lifestack/finance_records.csv");
         buildUI();
         loadRecordsForMonth(new Date()); // default: this month
     }
 
-    // === Custom Button ===
-    static class FinanceButton extends MyButton {
-        FinanceButton(String text) {
-            super(text);
-            this.setBackground(new Color(0x4CAF50));
-            this.hoverBg = new Color(0x81C784);
-            this.setForeground(Color.WHITE);
-        }
-    }
-
     @Override
     protected void buildUI() {
-        // Toolbar Buttons
+        // === Toolbar Buttons ===
         FinanceButton addBtn = new FinanceButton("New");
         FinanceButton deleteBtn = new FinanceButton("Delete");
         FinanceButton saveBtn = new FinanceButton("Save");
         FinanceButton filterBtn = new FinanceButton("Filter");
         FinanceButton clearFilterBtn = new FinanceButton("Clear Filter");
         FinanceButton exportBtn = new FinanceButton("Export PDF");
+        Export exp = new Export();
 
         addBtn.addActionListener(e -> addRecord());
         deleteBtn.addActionListener(e -> deleteRecord());
@@ -69,10 +71,11 @@ public class FinancePanel extends BaseAppPanel {
         filterBtn.addActionListener(e -> applyFilter());
         clearFilterBtn.addActionListener(e -> {
             sorter.setRowFilter(null);
-            updateChart();
+            chartPanel.updateChart(model);
             logLabel.setText("Filter cleared");
+            updateTotals();
         });
-        exportBtn.addActionListener(e -> exportPdf());
+        exportBtn.addActionListener(e -> exp.exportPdf(model, sdf, logLabel));
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonsPanel.setOpaque(false);
@@ -83,15 +86,27 @@ public class FinancePanel extends BaseAppPanel {
         buttonsPanel.add(clearFilterBtn);
         buttonsPanel.add(exportBtn);
 
+        // === Log Label ===
         logLabel = new JLabel(" ");
         logLabel.setFont(MyFonts.TEXT_FONT_BOLD);
         logLabel.setForeground(Color.GRAY);
 
+        // === Totals Label (NEW) ===
+        totalsLabel = new JLabel("Earnings: 0.00 | Costs: 0.00 | Net: 0.00");
+        totalsLabel.setFont(MyFonts.TEXT_FONT_BOLD);
+        totalsLabel.setForeground(Color.DARK_GRAY);
+
+        // === Top Panel ===
+        JPanel bottomInfoPanel = new JPanel(new GridLayout(2, 1));
+        bottomInfoPanel.setOpaque(false);
+        bottomInfoPanel.add(logLabel);
+        bottomInfoPanel.add(totalsLabel);
+
         topPanel.setLayout(new BorderLayout());
         topPanel.add(buttonsPanel, BorderLayout.NORTH);
-        topPanel.add(logLabel, BorderLayout.SOUTH);
+        topPanel.add(bottomInfoPanel, BorderLayout.SOUTH);
 
-        // Table setup
+        // === Table setup ===
         String[] columns = { "Date", "Description", "Type", "Amount" };
         model = new DefaultTableModel(columns, 0) {
             @Override
@@ -99,6 +114,7 @@ public class FinancePanel extends BaseAppPanel {
                 return switch (col) {
                 case 0 -> Date.class;
                 case 3 -> Double.class;
+                case 2 -> TypeRenderer.class;
                 default -> String.class;
                 };
             }
@@ -108,13 +124,14 @@ public class FinancePanel extends BaseAppPanel {
         sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
         table.setRowHeight(26);
+        table.getColumnModel().getColumn(2).setCellRenderer(new TypeRenderer());
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         mainBody.add(scrollPane, BorderLayout.CENTER);
 
-        // Chart panel
-        chartPanel = new JPanel(new BorderLayout());
+        // === Chart panel ===
+        chartPanel = new ExpenseGraph();
         chartPanel.setPreferredSize(new Dimension(400, 200));
         mainBody.add(chartPanel, BorderLayout.SOUTH);
     }
@@ -126,7 +143,7 @@ public class FinancePanel extends BaseAppPanel {
         JDateChooser dateChooser = new JDateChooser();
         dateChooser.setDate(new Date());
         JTextField descField = new JTextField();
-        JComboBox<String> typeBox = new JComboBox<>(new String[] { "Earning", "Cost" });
+        JComboBox<String> typeBox = new JComboBox<>(new String[] { "Earning", "Expense" });
         JTextField amountField = new JTextField();
 
         panel.add(new JLabel("Date:"));
@@ -148,22 +165,25 @@ public class FinancePanel extends BaseAppPanel {
 
                 model.addRow(new Object[] { date, desc, type, amt });
                 logLabel.setText("Record added");
-                updateChart();
+                chartPanel.updateChart(model);
+                updateTotals(); 
             } catch (Exception ex) {
                 logLabel.setText("Invalid input!");
             }
         }
     }
 
+    // === Delete Record ===
     private void deleteRecord() {
         int[] rows = table.getSelectedRows();
         for (int i = rows.length - 1; i >= 0; i--) {
             model.removeRow(table.convertRowIndexToModel(rows[i]));
         }
-        updateChart();
+        chartPanel.updateChart(model);
+        updateTotals(); 
     }
 
-    // === Save/Load ===
+    // === Save Records ===
     private void saveRecords() {
         try (BufferedWriter w = new BufferedWriter(new FileWriter(currentFile))) {
             for (int i = 0; i < model.getRowCount(); i++) {
@@ -175,11 +195,13 @@ public class FinancePanel extends BaseAppPanel {
                 w.newLine();
             }
             logLabel.setText("Saved");
+            updateTotals(); 
         } catch (Exception e) {
             logLabel.setText("Error saving!");
         }
     }
 
+    // === Load Records for Current Month ===
     private void loadRecordsForMonth(Date month) {
         if (!currentFile.exists())
             return;
@@ -205,14 +227,15 @@ public class FinancePanel extends BaseAppPanel {
         } catch (Exception e) {
             logLabel.setText("Error loading!");
         }
-        updateChart();
+        chartPanel.updateChart(model);
+        updateTotals();
     }
 
-    // === Filter ===
+    // === Apply Filter ===
     private void applyFilter() {
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
         JTextField descField = new JTextField();
-        JComboBox<String> typeBox = new JComboBox<>(new String[] { "", "Earning", "Cost" });
+        JComboBox<String> typeBox = new JComboBox<>(new String[] { "", "Earning", "Expense" });
 
         panel.add(new JLabel("Description contains:"));
         panel.add(descField);
@@ -229,101 +252,24 @@ public class FinancePanel extends BaseAppPanel {
             filters.add(RowFilter.regexFilter("^" + typeBox.getSelectedItem() + "$", 2));
 
         sorter.setRowFilter(filters.isEmpty() ? null : RowFilter.andFilter(filters));
-        updateChart();
+        chartPanel.updateChart(model);
+        updateTotals(); 
     }
 
-    // === Chart ===
-    private void updateChart() {
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        Map<String, Double> monthlyTotals = new TreeMap<>(); // sorted by month
-
+    // === NEW: Update Totals ===
+    private void updateTotals() {
+        double earnings = 0, costs = 0;
         for (int i = 0; i < model.getRowCount(); i++) {
-            Date d = (Date) model.getValueAt(i, 0);
-            Calendar c = Calendar.getInstance();
-            c.setTime(d);
-            String key = c.get(Calendar.YEAR) + "-" + String.format("%02d", c.get(Calendar.MONTH) + 1);
+            String type = model.getValueAt(i, 2).toString();
             double amt = (Double) model.getValueAt(i, 3);
-            if (model.getValueAt(i, 2).equals("Cost"))
-                amt *= -1;
-            monthlyTotals.put(key, monthlyTotals.getOrDefault(key, 0.0) + amt);
-        }
-
-        for (String k : monthlyTotals.keySet()) {
-            dataset.addValue(monthlyTotals.get(k), "Net", k);
-        }
-
-        JFreeChart chart = ChartFactory.createBarChart("Monthly Net", "Month", "Amount", dataset,
-                PlotOrientation.VERTICAL, false, true, false);
-
-        CategoryPlot plot = chart.getCategoryPlot();
-        plot.setBackgroundPaint(Color.WHITE);
-        plot.setRangeGridlinePaint(Color.GRAY);
-
-        BarRenderer renderer = (BarRenderer) plot.getRenderer();
-        renderer.setSeriesPaint(0, new Color(76, 175, 80));
-        renderer.setBarPainter(new StandardBarPainter());
-        renderer.setShadowVisible(false);
-
-        chartPanel.removeAll();
-        chartPanel.add(new ChartPanel(chart), BorderLayout.CENTER);
-        chartPanel.revalidate();
-    }
-
-    // === Export PDF ===
-    private void exportPdf() {
-        String[] options = { "This Month", "All" };
-        int choice = JOptionPane.showOptionDialog(null, "Export PDF", "Choose", 0, JOptionPane.PLAIN_MESSAGE, null,
-                options, options[0]);
-        if (choice == -1)
-            return;
-
-        try (PDDocument doc = new PDDocument()) {
-            PDPage page = new PDPage(PDRectangle.A4);
-            doc.addPage(page);
-
-            PDPageContentStream cs = new PDPageContentStream(doc, page);
-            float y = 750;
-
-            PDFont fTitle = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-            PDFont fText = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-
-            // Title
-            cs.beginText();
-            cs.setFont(fTitle, 14);
-            cs.newLineAtOffset(50, y);
-            cs.showText("Finance Report");
-            cs.endText();
-
-            y -= 30;
-
-            // Table content
-            for (int i = 0; i < model.getRowCount(); i++) {
-                if (y < 50) { // new page
-                    cs.close();
-                    page = new PDPage(PDRectangle.A4);
-                    doc.addPage(page);
-                    cs = new PDPageContentStream(doc, page);
-                    y = 750;
-                }
-
-                String line = sdf.format((Date) model.getValueAt(i, 0)) + " | " + model.getValueAt(i, 1) + " | "
-                        + model.getValueAt(i, 2) + " | " + model.getValueAt(i, 3);
-
-                cs.beginText();
-                cs.setFont(fText, 10);
-                cs.newLineAtOffset(50, y);
-                cs.showText(line);
-                cs.endText();
-
-                y -= 15;
+            if ("Earning".equalsIgnoreCase(type)) {
+                earnings += amt;
+            } else if ("Expense".equalsIgnoreCase(type)) {
+                costs += amt;
             }
-
-            cs.close();
-            doc.save(new File(System.getProperty("user.home"), "finance_report.pdf"));
-            logLabel.setText("PDF exported successfully!");
-        } catch (Exception ex) {
-            logLabel.setText("Error exporting: " + ex.getMessage());
         }
+        double net = earnings - costs;
+        totalsLabel.setText(String.format("Earnings: %.2f | Costs: %.2f | Net: %.2f", earnings, costs, net));
     }
 
 }

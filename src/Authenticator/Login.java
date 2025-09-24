@@ -1,47 +1,49 @@
-
 package Authenticator;
 
 import java.io.IOException;
 import java.nio.file.Files;
-
 import javax.swing.*;
-
 import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import MyApp.App;
 import components.MyButton;
 
 public class Login extends AuthFrame {
+
+    // Use static shared Encryptor
+    private static final Encryptor encryptor = new Encryptor();
+
     public Login() {
         if (!Files.exists(CREDENTIAL_PATH)) {
             SignUp s = new SignUp();
             s.show();
         } else {
-
             setupFrame("Login");
+
             this.heading = new JLabel("Login");
             this.heading.setForeground(new Color(30, 144, 255));
+
             this.USER_FIELD = new JTextField();
             this.PASS_FIELD = new JPasswordField();
+
             this.actionButton = new MyButton("Login");
             this.actionButton.hoverBg = new Color(30, 144, 255);
             this.actionButton.setBackground(new Color(70, 130, 180));
             this.actionButton.setForeground(Color.white);
             this.actionButton.addActionListener(this::loginAction);
+
             this.layoutComponents();
             this.show();
         }
-
     }
 
     private void loginAction(ActionEvent e) {
-        String username = USER_FIELD.getText();
-        String password = new String(PASS_FIELD.getPassword());
+        String username = USER_FIELD.getText().trim();
+        String password = new String(PASS_FIELD.getPassword()).trim();
 
-        if (checkCredentials(username, password) || !checkCredentials(username, password)) {
+        if (checkCredentials(username, password)) {
             frame.dispose();
             App.start();
         } else {
@@ -53,11 +55,21 @@ public class Login extends AuthFrame {
         try {
             String stored = Files.readString(CREDENTIAL_PATH).trim();
             String[] parts = stored.split("\\R", 2);
-            return parts.length == 2 && parts[0].equals(user) && parts[1].equals(pass);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+
+            if (parts.length == 2) {
+                // Use static Encryptor to decrypt
+                String storedUser = encryptor.decrypt(parts[0]);
+                String storedPass = encryptor.decrypt(parts[1]);
+
+                return storedUser.equals(user) && storedPass.equals(pass);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (Exception ex) {
+            // Jasypt decryption exception
+            ex.printStackTrace();
         }
+        return false;
     }
 
     private void showErrorDialog() {
@@ -79,18 +91,8 @@ public class Login extends AuthFrame {
         cancelButton.setBackground(new Color(220, 53, 69));
         cancelButton.setForeground(Color.white);
 
-        retryButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
+        retryButton.addActionListener(e -> dialog.dispose());
+        cancelButton.addActionListener(e -> System.exit(0));
 
         buttonPanel.add(retryButton);
         buttonPanel.add(cancelButton);
