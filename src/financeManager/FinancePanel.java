@@ -75,7 +75,7 @@ public class FinancePanel extends BaseAppPanel {
             logLabel.setText("Filter cleared");
             updateTotals();
         });
-        exportBtn.addActionListener(e -> exp.exportPdf(model, sdf, logLabel));
+        exportBtn.addActionListener(e -> exp.exportPdf(model, sdf, logLabel, totalsLabel.getText()));
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonsPanel.setOpaque(false);
