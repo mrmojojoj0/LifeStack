@@ -27,6 +27,8 @@ public class NotepadPanel extends BaseAppPanel {
     private int lastFindIndex = 0;
     private JTextPane findText;
     private JTextPane replaceText;
+    private JCheckBox autosaveCheck;
+    private javax.swing.Timer autosaveTimer;
 
     public NotepadPanel(JFrame parentFrame) {
         super(MyColors.notepadInactive);
@@ -71,6 +73,10 @@ public class NotepadPanel extends BaseAppPanel {
         buttonsPanel.add(openBtn);
         buttonsPanel.add(saveBtn);
         buttonsPanel.add(saveAsBtn);
+        autosaveCheck = new JCheckBox("Autosave");
+        autosaveCheck.setOpaque(false);
+        autosaveCheck.setFont(MyFonts.TEXT_FONT);
+        buttonsPanel.add(autosaveCheck);
         buttonsPanel.add(findText);
         buttonsPanel.add(findBtn);
         buttonsPanel.add(replaceText);
@@ -104,6 +110,43 @@ public class NotepadPanel extends BaseAppPanel {
         scrollPane.setBorder(new LineBorder(new Color(80, 80, 80), 1, true));
 
         mainBody.add(scrollPane, BorderLayout.CENTER);
+
+        // create idle autosave timer (3 second delay). It will fire after the user
+        // stops typing for the delay. The timer is restarted on each edit when
+        // the Autosave checkbox is checked.
+        autosaveTimer = new javax.swing.Timer(3000, ev -> {
+            // perform autosave off-EDT to avoid blocking UI
+            new Thread(() -> autosave()).start();
+        });
+        autosaveTimer.setRepeats(false); // single-shot: restart on further edits
+
+        // Document listener restarts the idle timer only when autosave is enabled
+        textArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void schedule() {
+                if (autosaveCheck.isSelected()) {
+                    if (autosaveTimer.isRunning()) autosaveTimer.restart();
+                    else autosaveTimer.start();
+                }
+            }
+
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { schedule(); }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { schedule(); }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { schedule(); }
+        });
+
+        autosaveCheck.addActionListener(e -> {
+            if (autosaveCheck.isSelected()) {
+                logLabel.setText("Autosave enabled");
+            } else {
+                autosaveTimer.stop();
+                logLabel.setText("Autosave disabled");
+            }
+        });
     }
 
     // === ACTIONS ===
@@ -183,9 +226,35 @@ public class NotepadPanel extends BaseAppPanel {
         }
     }
 
+    // Autosave implementation used by autosaveTimer: writes to currentFile or
+    // autosave file when no file chosen
+    private void autosave() {
+        try {
+            File target = currentFile;
+            boolean isTemp = false;
+            if (target == null) {
+                File dir = new File(System.getProperty("user.home"), "lifestack");
+                dir.mkdirs();
+                target = new File(dir, "autosave_notepad.txt");
+                isTemp = true;
+            }
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(target))) {
+                writer.write(textArea.getText());
+            }
+            final File finalTarget = target;
+            final boolean finalIsTemp = isTemp;
+            SwingUtilities.invokeLater(() -> {
+                if (!finalIsTemp)
+                    fileNameLabel.setText(finalTarget.getName());
+                logLabel.setText("Autosaved " + (finalIsTemp ? "(autosave)" : finalTarget.getName()));
+            });
+        } catch (IOException ex) {
+            SwingUtilities.invokeLater(() -> logLabel.setText("Error autosaving file!"));
+        }
+    }
+
     private void addFindAction(NotepadButton findBtn) {
         findBtn.addActionListener(e -> {
-
 
             String query = findText.getText();
             textArea.requestFocusInWindow();

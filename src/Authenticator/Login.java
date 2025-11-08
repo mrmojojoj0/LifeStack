@@ -12,8 +12,7 @@ import components.MyButton;
 
 public class Login extends AuthFrame {
 
-    // Use static shared Encryptor
-    private static final Encryptor encryptor = new Encryptor();
+    // Use Encryptor static methods (no instance required)
 
     public Login() {
         if (!Files.exists(CREDENTIAL_PATH)) {
@@ -57,9 +56,9 @@ public class Login extends AuthFrame {
             String[] parts = stored.split("\\R", 2);
 
             if (parts.length == 2) {
-                // Use static Encryptor to decrypt
-                String storedUser = encryptor.decrypt(parts[0]);
-                String storedPass = encryptor.decrypt(parts[1]);
+                // Use Encryptor static methods to decrypt
+                String storedUser = Encryptor.decrypt(parts[0]);
+                String storedPass = Encryptor.decrypt(parts[1]);
 
                 return storedUser.equals(user) && storedPass.equals(pass);
             }

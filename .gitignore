@@ -4,6 +4,7 @@
 build
 # Log file
 *.log
+.unused
 
 # BlueJ files
 *.ctxt

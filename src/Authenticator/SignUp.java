@@ -8,8 +8,7 @@ import components.MyButton;
 
 public class SignUp extends AuthFrame {
 
-    // Static shared encryptor for SignUp and Login
-    private static final Encryptor encryptor = new Encryptor();
+    // Use Encryptor static methods (no instance required)
 
     public SignUp() {
         setupFrame("Sign Up");
@@ -40,8 +39,8 @@ public class SignUp extends AuthFrame {
         }
 
         try {
-            // Use the static shared encryptor
-            String credentials = encryptor.encrypt(username) + "\n" + encryptor.encrypt(password);
+            // Use the Encryptor static methods
+            String credentials = Encryptor.encrypt(username) + "\n" + Encryptor.encrypt(password);
 
             Files.createDirectories(CREDENTIAL_PATH.getParent());
             Files.writeString(CREDENTIAL_PATH, credentials);

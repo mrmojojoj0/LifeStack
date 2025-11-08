@@ -1,7 +1,6 @@
 package financeManager;
 
 import java.io.File;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -15,7 +14,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 public class Export {
@@ -94,8 +92,9 @@ void exportPdf(DefaultTableModel model, SimpleDateFormat sdf, JLabel logLabel, S
 
             // Sum income/expense based on category (example: "Income"/"Expense")
             try {
-                double amt = Double.parseDouble(values[2]);
-                String category = values[1].toLowerCase();
+                // values: [0]=Date, [1]=Description, [2]=Category, [3]=Amount
+                double amt = Double.parseDouble(values[3]);
+                String category = values[2].toLowerCase();
                 if (category.contains("income")) totalIncome += amt;
                 else totalExpense += amt;
             } catch (Exception ignored) {}
@@ -112,27 +111,35 @@ void exportPdf(DefaultTableModel model, SimpleDateFormat sdf, JLabel logLabel, S
             y -= 15;
         }
 
-        // Totals
-        y -= 20;
-        cs.beginText();
-        cs.setFont(fHeader, 12);
-        cs.newLineAtOffset(margin, y);
-        cs.showText(String.format(total));
-        cs.endText();
+    // Totals / Summary
+    y -= 20;
+    cs.beginText();
+    cs.setFont(fHeader, 12);
+    cs.newLineAtOffset(margin, y);
+    // show any summary string passed in
+    if (total != null && !total.isEmpty()) cs.showText(total);
+    cs.endText();
 
-        // y -= 15;
-        // cs.beginText();
-        // cs.setFont(fHeader, 12);
-        // cs.newLineAtOffset(margin, y);
-        // cs.showText(String.format("Total Expense: %.2f", totalExpense));
-        // cs.endText();
+    y -= 15;
+    cs.beginText();
+    cs.setFont(fHeader, 12);
+    cs.newLineAtOffset(margin, y);
+    cs.showText(String.format("Total Income: %.2f", totalIncome));
+    cs.endText();
 
-        // y -= 15;
-        // cs.beginText();
-        // cs.setFont(fHeader, 12);
-        // cs.newLineAtOffset(margin, y);
-        // cs.showText(String.format("Net Balance: %.2f", totalIncome - totalExpense));
-        // cs.endText();
+    y -= 15;
+    cs.beginText();
+    cs.setFont(fHeader, 12);
+    cs.newLineAtOffset(margin, y);
+    cs.showText(String.format("Total Expense: %.2f", totalExpense));
+    cs.endText();
+
+    y -= 15;
+    cs.beginText();
+    cs.setFont(fHeader, 12);
+    cs.newLineAtOffset(margin, y);
+    cs.showText(String.format("Net Balance: %.2f", totalIncome - totalExpense));
+    cs.endText();
 
         cs.close();
         doc.save(new File(System.getProperty("user.home"), "finance_report.pdf"));

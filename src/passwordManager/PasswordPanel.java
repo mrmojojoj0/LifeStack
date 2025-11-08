@@ -34,7 +34,7 @@ public class PasswordPanel extends BaseAppPanel {
 
     private boolean passwordsVisible = false;
 
-    private static final Encryptor encryptor = new Encryptor();
+    // Encryptor provides static encrypt/decrypt methods; no instance needed
 
     public PasswordPanel(JFrame parentFrame) {
         super(MyColors.passwordInactive);
@@ -216,8 +216,8 @@ public class PasswordPanel extends BaseAppPanel {
                     String strength = model.getValueAt(i, 3).toString();
 
                     // encrypt only when saving
-                    String usernameEnc = encryptor.encrypt(username);
-                    String passwordEnc = encryptor.encrypt(password);
+                    String usernameEnc = Encryptor.encrypt(username);
+                    String passwordEnc = Encryptor.encrypt(password);
 
                     writer.write(String.join(",", website, usernameEnc, passwordEnc, strength));
                     writer.newLine();
@@ -240,8 +240,8 @@ public class PasswordPanel extends BaseAppPanel {
                 String[] parts = line.split(",", 4);
                 if (parts.length == 4) {
                     // decrypt when loading
-                    String username = encryptor.decrypt(parts[1]);
-                    String password = encryptor.decrypt(parts[2]);
+                    String username = Encryptor.decrypt(parts[1]);
+                    String password = Encryptor.decrypt(parts[2]);
                     model.addRow(new Object[] { parts[0], username, password, parts[3] });
                 }
             }
