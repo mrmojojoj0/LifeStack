@@ -2,3 +2,5 @@ org.apache.pdfbox:pdfbox:2.0.27
 com.toedter:jcalendar:1.4
 org.jfree:jfreechart:1.5.4
 org.jasypt:jasypt:1.9.3
+
+wixcli-6.0.exe (to the path)
