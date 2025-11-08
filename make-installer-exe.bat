@@ -3,7 +3,7 @@ copy LifeStack-all.jar app-input
 copy icon.ico app-input
 
 jpackage --type exe ^
-  --name LifeStack ^
+  --name LifeStack-installer ^
   --app-version 1.0 ^
   --input app-input ^
   --main-jar LifeStack-all.jar ^
