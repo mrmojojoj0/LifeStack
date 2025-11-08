@@ -50,6 +50,9 @@ public class SignUp extends AuthFrame {
             new Login(); // Login will also use static encryptor
         } catch (Exception ex) {
             ex.printStackTrace();
+            // Surface errors in the packaged exe with a user dialog
+            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame,
+                    "Failed to save credentials:\n" + ex.toString(), "Error", JOptionPane.ERROR_MESSAGE));
             showDialog("Error", "Failed to save credentials!");
         }
     }

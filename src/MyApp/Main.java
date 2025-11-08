@@ -5,8 +5,11 @@ import Authenticator.Login;
 public class Main {
     public static void main(String[] args) {
 
-        Login l = new Login();
-        l.show();
+        // Login constructor will show the appropriate UI (SignUp or Login).
+        // Do not call show() on the Login instance here because
+        // when SignUp is displayed the Login.frame remains null and
+        // calling show() would cause a NullPointerException.
+        new Login();
 
     }
 

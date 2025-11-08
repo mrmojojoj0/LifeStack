@@ -64,9 +64,13 @@ public class Login extends AuthFrame {
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame,
+                    "I/O error while reading credentials:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE));
         } catch (Exception ex) {
-            // Jasypt decryption exception
+            // Jasypt decryption or other exception
             ex.printStackTrace();
+            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame,
+                    "Error while decrypting credentials:\n" + ex.toString(), "Error", JOptionPane.ERROR_MESSAGE));
         }
         return false;
     }
