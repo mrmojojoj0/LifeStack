@@ -114,7 +114,7 @@ public class NotepadPanel extends BaseAppPanel {
         // create idle autosave timer (3 second delay). It will fire after the user
         // stops typing for the delay. The timer is restarted on each edit when
         // the Autosave checkbox is checked.
-        autosaveTimer = new javax.swing.Timer(3000, ev -> {
+        autosaveTimer = new javax.swing.Timer(1000, ev -> {
             // perform autosave off-EDT to avoid blocking UI
             new Thread(() -> autosave()).start();
         });
@@ -165,7 +165,9 @@ public class NotepadPanel extends BaseAppPanel {
         openBtn.addActionListener(e -> {
 
             JFileChooser fileChooser = new JFileChooser();
+
             int option = fileChooser.showOpenDialog(parentFrame);
+            
             if (option == JFileChooser.APPROVE_OPTION) {
                 currentFile = fileChooser.getSelectedFile();
                 try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
@@ -243,6 +245,7 @@ public class NotepadPanel extends BaseAppPanel {
             }
             final File finalTarget = target;
             final boolean finalIsTemp = isTemp;
+
             SwingUtilities.invokeLater(() -> {
                 if (!finalIsTemp)
                     fileNameLabel.setText(finalTarget.getName());
